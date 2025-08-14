@@ -1,21 +1,20 @@
 import { create } from "zustand";
-import { Config, Food, Players, Rule, Pool, Scoring } from "../types";
+import { Config, Food, Players, Rule, Scoring } from "../types";
 import { storage } from "../lib/storage";
 
 const KEY_LAST = "cfg:last";
 const KEY_TMPL = "cfg:templates";
 
 const defaultFoods: Food[] = [
-  // 初回の簡易プリセット（各手3件）
-  { id: "r-1", name: "おにぎり", pool: "rock", enabled: true, points: 3 },
-  { id: "r-2", name: "からあげ", pool: "rock", enabled: true, points: 4 },
-  { id: "r-3", name: "フライドポテト", pool: "rock", enabled: true, points: 5 },
-  { id: "s-1", name: "サラダ", pool: "scissors", enabled: true, points: 3 },
-  { id: "s-2", name: "冷奴", pool: "scissors", enabled: true, points: 2 },
-  { id: "s-3", name: "枝豆", pool: "scissors", enabled: true, points: 2 },
-  { id: "p-1", name: "ラーメン", pool: "paper", enabled: true, points: 5 },
-  { id: "p-2", name: "アイス", pool: "paper", enabled: true, points: 2 },
-  { id: "p-3", name: "うどん", pool: "paper", enabled: true, points: 3 },
+  { id: "f-1", name: "おにぎり", enabled: true, points: 3 },
+  { id: "f-2", name: "からあげ", enabled: true, points: 4 },
+  { id: "f-3", name: "フライドポテト", enabled: true, points: 5 },
+  { id: "f-4", name: "サラダ", enabled: true, points: 3 },
+  { id: "f-5", name: "冷奴", enabled: true, points: 2 },
+  { id: "f-6", name: "枝豆", enabled: true, points: 2 },
+  { id: "f-7", name: "ラーメン", enabled: true, points: 5 },
+  { id: "f-8", name: "アイス", enabled: true, points: 2 },
+  { id: "f-9", name: "うどん", enabled: true, points: 3 },
 ];
 
 const defaultConfig: Config = {
@@ -41,11 +40,13 @@ type ConfigState = {
   setScoring: (s: Scoring) => void;
   setFixedPoint: (n: number) => void;
 
-  foodsByPool: (pool: Pool) => Food[];
-  addFood: (pool: Pool) => void;
+  foods: () => Food[];
+  addFood: () => void;
   updateFood: (id: string, patch: Partial<Food>) => void;
   deleteFood: (id: string) => void;
   toggleFood: (id: string, on: boolean) => void;
+
+  templateSummary: (slot: 0 | 1 | 2) => string; // UX向上の説明文
 };
 
 export const useConfigStore = create<ConfigState>((set, get) => ({
@@ -128,23 +129,17 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
     });
   },
 
-  foodsByPool: (pool) => {
+  foods: () => {
     const st = get();
     if (!st.config) return [];
-    return st.config.foods.filter((f) => f.pool === pool);
+    return st.config.foods;
   },
 
-  addFood: (pool) => {
+  addFood: () => {
     const st = get();
     if (!st.config) return;
-    const id = `${pool}-${Date.now()}`;
-    const next: Food = {
-      id,
-      name: "新メニュー",
-      pool,
-      enabled: true,
-      points: 3,
-    };
+    const id = `f-${Date.now()}`;
+    const next: Food = { id, name: "新メニュー", enabled: true, points: 3 };
     set({ config: { ...st.config, foods: [...st.config.foods, next] } });
   },
 
@@ -160,8 +155,12 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
   deleteFood: (id) => {
     const st = get();
     if (!st.config) return;
-    const foods = st.config.foods.filter((f) => f.id !== id);
-    set({ config: { ...st.config, foods } });
+    set({
+      config: {
+        ...st.config,
+        foods: st.config.foods.filter((f) => f.id !== id),
+      },
+    });
   },
 
   toggleFood: (id, on) => {
@@ -171,5 +170,17 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
       f.id === id ? { ...f, enabled: on } : f
     );
     set({ config: { ...st.config, foods } });
+  },
+
+  templateSummary: (slot) => {
+    const st = get();
+    const tpl = st.templates[slot];
+    if (!tpl) return "未保存";
+    const enabled = tpl.foods.filter((f) => f.enabled).length;
+    const mode =
+      tpl.rule.scoring === "fixed"
+        ? `固定${tpl.rule.fixedPointValue ?? 3}点`
+        : "名前の文字数";
+    return `候補 ${enabled} 件・${mode}・目標 ${tpl.rule.pointTarget} 点`;
   },
 }));

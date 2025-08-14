@@ -20,7 +20,7 @@ export default function Game() {
     resetMatch,
     isReady,
   } = useGameStore();
-  const { config } = useConfigStore();
+  const { config, toggleFood } = useConfigStore();
 
   const [selectWinner, setSelectWinner] = useState<"p1" | "p2" | null>(null);
 
@@ -68,26 +68,28 @@ export default function Game() {
     );
   }
 
-  const PreviewCard = ({ hand, label }: { hand: Pool; label: string }) => {
-    const food = preview.byHand[hand]?.food;
+  const Card = ({ hand, label }: { hand: Pool; label: string }) => {
+    const item = preview.byHand[hand];
+    const f = item?.food;
     return (
-      <View style={s.card}>
+      <TouchableOpacity
+        activeOpacity={0.9}
+        onLongPress={() => {
+          if (f) toggleFood(f.id, false);
+        }}
+        style={s.card}
+      >
         <Text style={s.cardHand}>{label}</Text>
-        {food ? (
+        {f ? (
           <>
-            <Text style={s.cardName}>{food.name}</Text>
-            <Text style={s.cardPts}>+{preview.byHand[hand]!.points}pt</Text>
-            <TouchableOpacity
-              onLongPress={() => preview.onHide?.(food.id)}
-              style={s.hideBtn}
-            >
-              <Text style={s.hideText}>長押しで非表示</Text>
-            </TouchableOpacity>
+            <Text style={s.cardName}>{f.name}</Text>
+            <Text style={s.cardPts}>+{item!.points} pt</Text>
+            <Text style={s.cardHelp}>長押しで非表示（次ラウンドから反映）</Text>
           </>
         ) : (
           <Text style={s.none}>候補なし</Text>
         )}
-      </View>
+      </TouchableOpacity>
     );
   };
 
@@ -97,9 +99,10 @@ export default function Game() {
     setSelectWinner(null);
   };
 
+  // app/game.tsx（抜粋：return部）
   return (
     <View style={s.container}>
-      <Text style={s.title}>先取 {rule?.pointTarget} 点</Text>
+      <Text style={s.title}>目標 {rule?.pointTarget} 点</Text>
 
       <View style={s.scoreRow}>
         <View style={s.scoreBox}>
@@ -113,12 +116,10 @@ export default function Game() {
       </View>
 
       <View style={s.previewRow}>
-        <PreviewCard hand="rock" label="🪨 グー" />
-        <PreviewCard hand="scissors" label="✂️ チョキ" />
-        <PreviewCard hand="paper" label="🧻 パー" />
+        <Card hand="rock" label="グー" />
+        <Card hand="scissors" label="チョキ" />
+        <Card hand="paper" label="パー" />
       </View>
-
-      <View style={{ height: 12 }} />
 
       {!selectWinner ? (
         <View style={s.row}>
@@ -171,6 +172,26 @@ export default function Game() {
           <Text style={s.secondaryTxt}>リセット</Text>
         </TouchableOpacity>
       </View>
+
+      {/* ← 必ず親Viewの“内側”に置く */}
+      <TouchableOpacity
+        onPress={() => router.push("/inventory")}
+        style={{
+          position: "absolute",
+          right: 16,
+          bottom: 24,
+          backgroundColor: "#111",
+          paddingVertical: 12,
+          paddingHorizontal: 16,
+          borderRadius: 999,
+          shadowColor: "#000",
+          shadowOpacity: 0.2,
+          shadowRadius: 8,
+          elevation: 4,
+        }}
+      >
+        <Text style={{ color: "#fff", fontWeight: "700" }}>在庫管理</Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -198,18 +219,11 @@ const s = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#eee",
   },
-  cardHand: { fontWeight: "600", marginBottom: 6 },
+  cardHand: { fontWeight: "700", marginBottom: 6 },
   cardName: { fontSize: 16, fontWeight: "700" },
   cardPts: { marginTop: 4, color: "#555" },
+  cardHelp: { marginTop: 6, fontSize: 12, color: "#6b7280" },
   none: { color: "#999", marginTop: 16 },
-  hideBtn: {
-    marginTop: 10,
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    backgroundColor: "#eee",
-    borderRadius: 8,
-  },
-  hideText: { fontSize: 12, color: "#333" },
   row: { flexDirection: "row", gap: 8, marginTop: 16 },
   bigBtn: {
     flex: 1,
@@ -221,7 +235,7 @@ const s = StyleSheet.create({
   bigTxt: { color: "#fff", fontWeight: "700" },
   smallBtn: { flex: 1, padding: 12, borderRadius: 12, alignItems: "center" },
   smallTxt: { color: "#fff", fontWeight: "700" },
-  rock: { backgroundColor: "#7c3aed" }, // 適当な色
+  rock: { backgroundColor: "#7c3aed" },
   scissors: { backgroundColor: "#2563eb" },
   paper: { backgroundColor: "#059669" },
   footerRow: { flexDirection: "row", gap: 8, marginTop: 16 },

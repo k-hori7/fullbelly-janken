@@ -4,9 +4,8 @@ export type Scoring = "fixed" | "nameLen";
 export type Food = {
   id: string;
   name: string;
-  pool: Pool;
   enabled: boolean;
-  points?: number; // fixed時のみ使用
+  points?: number; // fixed時のみ使用（未指定ならrule.fixedPointValue）
 };
 
 export type Rule = {
@@ -20,7 +19,7 @@ export type Players = { p1Name: string; p2Name: string };
 export type Config = {
   players: Players;
   rule: Rule;
-  foods: Food[];
+  foods: Food[]; // ← 全手共通の候補
 };
 
 export type PlayerScore = { name: string; points: number };

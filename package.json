@@ -11,19 +11,24 @@
     "lint": "echo \"(lint省略)\""
   },
   "dependencies": {
-    "@react-native-async-storage/async-storage": "^1.23.1",
-    "expo": "^51.0.0",
-    "expo-router": "^3.5.16",
-    "react": "18.2.0",
-    "react-native": "0.74.0",
+    "@react-native-async-storage/async-storage": "2.1.2",
+    "expo": "~53.0.0",
+    "expo-constants": "~17.1.7",
+    "expo-router": "^5.1.4",
+    "react": "19.0.0",
     "react-hook-form": "^7.52.0",
+    "react-native": "0.79.5",
+    "react-native-gesture-handler": "~2.24.0",
+    "react-native-safe-area-context": "5.4.0",
+    "react-native-screens": "~4.11.1",
+    "react-native-swipe-list-view": "^3.2.9",
     "seedrandom": "^3.0.5",
-    "zustand": "^4.5.2",
     "zod": "^3.23.8",
-    "expo-constants": "^15.0.1"
+    "zustand": "^4.5.2"
   },
   "devDependencies": {
     "@types/seedrandom": "^3.0.8",
-    "typescript": "^5.4.0"
+    "typescript": "~5.8.3",
+    "@types/react": "~19.0.10"
   }
 }
