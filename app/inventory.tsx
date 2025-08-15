@@ -8,13 +8,14 @@ import {
   TextInput,
   Alert,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { SwipeListView } from "react-native-swipe-list-view";
 import { useConfigStore } from "../src/store/configStore";
 
 export default function Inventory() {
   const router = useRouter();
-  const { hydrate, foods, addFood, deleteFood, saveAsLast } =
+  const { hydrate, foods, addFood, deleteFood, saveAsLast, updateFood } =
     useConfigStore();
   const [q, setQ] = useState("");
 
@@ -36,7 +37,7 @@ export default function Inventory() {
   };
 
   return (
-    <View style={s.wrap}>
+    <SafeAreaView style={s.wrap}>
       <View style={s.header}>
         <TouchableOpacity onPress={() => router.back()} style={s.back}>
           <Text style={s.backTx}>戻る</Text>
@@ -57,11 +58,17 @@ export default function Inventory() {
           <TouchableOpacity style={s.toolBtn} onPress={() => addFood()}>
             <Text style={s.toolTx}>追加</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={s.toolBtn} onPress={saveAsLast}>
+          <TouchableOpacity
+            style={s.toolBtn}
+            onPress={() => {
+              saveAsLast();
+              Alert.alert("保存しました");
+            }}
+          >
             <Text style={s.toolTx}>保存</Text>
           </TouchableOpacity>
         </View>
-        <Text style={s.hint}>右にスワイプ：削除</Text>
+        <Text style={s.hint}>左にスワイプ：削除</Text>
       </View>
 
       <SwipeListView
@@ -70,7 +77,19 @@ export default function Inventory() {
         contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}
         renderItem={({ item }) => (
           <View style={s.rowItem}>
-            <Text style={s.name}>{item.name}</Text>
+            <TextInput
+              value={item.name}
+              onChangeText={(t) => updateFood(item.id, { name: t })}
+              style={s.nameInput}
+            />
+            <TextInput
+              value={String(item.points)}
+              onChangeText={(t) =>
+                updateFood(item.id, { points: Number(t) || 0 })
+              }
+              style={s.pointInput}
+              keyboardType="numeric"
+            />
           </View>
         )}
         renderHiddenItem={({ item }) => (
@@ -83,16 +102,16 @@ export default function Inventory() {
             </TouchableOpacity>
           </View>
         )}
-        rightOpenValue={-80} // → 右に80px開く：削除
-        disableLeftSwipe={true}
-        disableRightSwipe={false}
+        rightOpenValue={-80} // ← 左に80px開く：削除
+        disableLeftSwipe={false}
+        disableRightSwipe={true}
       />
-    </View>
+    </SafeAreaView>
   );
 }
 
 const s = StyleSheet.create({
-  wrap: { flex: 1, backgroundColor: "#fff", paddingTop: 12 },
+  wrap: { flex: 1, backgroundColor: "#fff", paddingTop: 24 },
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -132,7 +151,8 @@ const s = StyleSheet.create({
     justifyContent: "flex-start",
     alignItems: "center",
   },
-  name: { fontWeight: "700" },
+  nameInput: { flex: 1, fontWeight: "700" },
+  pointInput: { width: 40, marginLeft: 8, textAlign: "right" },
   hiddenRow: {
     flex: 1,
     flexDirection: "row",

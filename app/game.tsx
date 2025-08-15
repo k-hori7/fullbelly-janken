@@ -193,7 +193,12 @@ export default function Game() {
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff", padding: 16, paddingTop: 48 },
+  container: {
+    flex: 1,
+    backgroundColor: "#fff",
+    padding: 16,
+    justifyContent: "center",
+  },
   title: { fontSize: 18, fontWeight: "700", marginBottom: 8 },
   scoreRow: { flexDirection: "row", gap: 12, marginBottom: 12 },
   scoreBox: {
