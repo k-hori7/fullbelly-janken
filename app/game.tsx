@@ -1,9 +1,35 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { View, Text, TouchableOpacity, StyleSheet, Alert, Image, ImageSourcePropType } from "react-native";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+  Image,
+  ImageSourcePropType,
+} from "react-native";
 import { useRouter } from "expo-router";
 import { useGameStore } from "../src/store/gameStore";
 import { useConfigStore } from "../src/store/configStore";
 import { Pool } from "../src/types";
+import {
+  AdEventType,
+  InterstitialAd,
+  TestIds,
+  NativeAdView,
+  AdBadge,
+  MediaView,
+  CallToActionView,
+  HeadlineView,
+  TaglineView,
+  IconView,
+} from "react-native-google-mobile-ads";
+
+const INTERSTITIAL_AD_UNIT_ID = TestIds.INTERSTITIAL;
+// const INTERSTITIAL_AD_UNIT_ID = "ca-app-pub-xxxxxxxxxxxxxxxx/xxxxxxxxxx"; // ← 本番用の広告ユニットIDをここに入力
+
+const NATIVE_AD_UNIT_ID = TestIds.NATIVE_ADVANCED;
+// const NATIVE_AD_UNIT_ID = "ca-app-pub-xxxxxxxxxxxxxxxx/xxxxxxxxxx"; // ← 本番用の広告ユニットIDをここに入力
 
 const handImages: Record<Pool, ImageSourcePropType> = {
   rock: require("../image/gu.png"),
@@ -29,6 +55,33 @@ export default function Game() {
   const { config } = useConfigStore();
 
   const [selectWinner, setSelectWinner] = useState<"p1" | "p2" | null>(null);
+  const [adLoaded, setAdLoaded] = useState(false);
+  const interstitialRef = useRef(
+    InterstitialAd.createForAdRequest(INTERSTITIAL_AD_UNIT_ID, {
+      requestNonPersonalizedAdsOnly: true,
+    })
+  );
+
+  useEffect(() => {
+    const interstitial = interstitialRef.current;
+    const unsubscribeLoaded = interstitial.addAdEventListener(
+      AdEventType.LOADED,
+      () => setAdLoaded(true)
+    );
+    const unsubscribeClosed = interstitial.addAdEventListener(
+      AdEventType.CLOSED,
+      () => {
+        setAdLoaded(false);
+        interstitial.load();
+        showEndAlert();
+      }
+    );
+    interstitial.load();
+    return () => {
+      unsubscribeLoaded();
+      unsubscribeClosed();
+    };
+  }, []);
 
   useEffect(() => {
     if (!config) {
@@ -51,22 +104,30 @@ export default function Game() {
     return p1.points >= rule.pointTarget || p2.points >= rule.pointTarget;
   }, [p1.points, p2.points, rule]);
 
+  const showEndAlert = () => {
+    const winner = p1.points > p2.points ? players[0].name : players[1].name;
+    Alert.alert("勝負あり！", `${winner} の勝ち`, [
+      {
+        text: "同じ設定で再戦",
+        onPress: () => {
+          resetMatch();
+          startMatch(config!);
+          newPreview();
+        },
+      },
+      { text: "ホームへ", onPress: () => router.replace("/") },
+    ]);
+  };
+
   useEffect(() => {
     if (done) {
-      const winner = p1.points > p2.points ? players[0].name : players[1].name;
-      Alert.alert("勝負あり！", `${winner} の勝ち`, [
-        {
-          text: "同じ設定で再戦",
-          onPress: () => {
-            resetMatch();
-            startMatch(config!);
-            newPreview();
-          },
-        },
-        { text: "ホームへ", onPress: () => router.replace("/") },
-      ]);
+      if (adLoaded) {
+        interstitialRef.current.show();
+      } else {
+        showEndAlert();
+      }
     }
-  }, [done]);
+  }, [done, adLoaded]);
 
   if (!isReady || !preview) {
     return (
@@ -104,6 +165,7 @@ export default function Game() {
   // app/game.tsx（抜粋：return部）
   return (
     <View style={s.container}>
+      <TopNativeAd />
       <Text style={s.title}>目標 {rule?.pointTarget} 点</Text>
 
       <View style={s.scoreRow}>
@@ -269,4 +331,35 @@ const s = StyleSheet.create({
   undoTxt: { fontWeight: "600", color: "#111" },
   secondary: { padding: 12, borderRadius: 12, backgroundColor: "#eee" },
   secondaryTxt: { fontWeight: "600" },
+  native: { width: "100%", marginBottom: 8 },
+  nativeContainer: { flexDirection: "row", alignItems: "center" },
+  nativeIcon: { width: 60, height: 60 },
+  nativeText: { flex: 1, paddingLeft: 8 },
+  nativeHeadline: { fontSize: 14, fontWeight: "700" },
+  nativeTagline: { fontSize: 12 },
+  nativeMedia: { width: "100%", height: 120, marginTop: 8 },
+  nativeCTA: {
+    marginTop: 8,
+    backgroundColor: "#111",
+    borderRadius: 8,
+    height: 40,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  nativeCTATxt: { color: "#fff", fontWeight: "700" },
 });
+
+const TopNativeAd = () => (
+  <NativeAdView adUnitId={NATIVE_AD_UNIT_ID} style={s.native}>
+    <View style={s.nativeContainer}>
+      <IconView style={s.nativeIcon} />
+      <View style={s.nativeText}>
+        <AdBadge />
+        <HeadlineView style={s.nativeHeadline} />
+        <TaglineView style={s.nativeTagline} />
+      </View>
+    </View>
+    <MediaView style={s.nativeMedia} />
+    <CallToActionView style={s.nativeCTA} textStyle={s.nativeCTATxt} />
+  </NativeAdView>
+);
