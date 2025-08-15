@@ -38,7 +38,7 @@ export default function Game() {
 
   useEffect(() => {
     if (isReady) newPreview();
-  }, [isReady]);
+  }, [isReady, config]);
 
   const done = useMemo(() => {
     if (!rule) return false;
