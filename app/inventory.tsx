@@ -14,7 +14,7 @@ import { useConfigStore } from "../src/store/configStore";
 
 export default function Inventory() {
   const router = useRouter();
-  const { hydrate, foods, toggleFood, deleteFood, saveAsLast } =
+  const { hydrate, foods, addFood, deleteFood, saveAsLast } =
     useConfigStore();
   const [q, setQ] = useState("");
 
@@ -28,19 +28,11 @@ export default function Inventory() {
     [data, q]
   );
 
-  const onToggle = (id: string, next: boolean) => toggleFood(id, next);
   const onDelete = (id: string) => {
     Alert.alert("削除しますか？", "この候補は元に戻せません", [
       { text: "キャンセル", style: "cancel" },
       { text: "削除", style: "destructive", onPress: () => deleteFood(id) },
     ]);
-  };
-
-  const showAll = () => {
-    filtered.forEach((f) => f.enabled || toggleFood(f.id, true));
-  };
-  const hideAll = () => {
-    filtered.forEach((f) => f.enabled && toggleFood(f.id, false));
   };
 
   return (
@@ -62,19 +54,14 @@ export default function Inventory() {
           returnKeyType="search"
         />
         <View style={s.row}>
-          <TouchableOpacity style={s.toolBtn} onPress={showAll}>
-            <Text style={s.toolTx}>全表示</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={s.toolBtn} onPress={hideAll}>
-            <Text style={s.toolTx}>全非表示</Text>
+          <TouchableOpacity style={s.toolBtn} onPress={() => addFood()}>
+            <Text style={s.toolTx}>追加</Text>
           </TouchableOpacity>
           <TouchableOpacity style={s.toolBtn} onPress={saveAsLast}>
             <Text style={s.toolTx}>保存</Text>
           </TouchableOpacity>
         </View>
-        <Text style={s.hint}>
-          左にスワイプ：表示/非表示　右にスワイプ：削除
-        </Text>
+        <Text style={s.hint}>右にスワイプ：削除</Text>
       </View>
 
       <SwipeListView
@@ -82,32 +69,22 @@ export default function Inventory() {
         keyExtractor={(i) => i.id}
         contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}
         renderItem={({ item }) => (
-          <View style={[s.rowItem, !item.enabled && { opacity: 0.45 }]}>
+          <View style={s.rowItem}>
             <Text style={s.name}>{item.name}</Text>
-            <Text style={s.badge}>{item.enabled ? "表示" : "非表示"}</Text>
           </View>
         )}
         renderHiddenItem={({ item }) => (
           <View style={s.hiddenRow}>
             <TouchableOpacity
-              style={[s.hideBtn, { alignSelf: "flex-start" }]}
-              onPress={() => onToggle(item.id, !item.enabled)}
-            >
-              <Text style={s.hideTx}>
-                {item.enabled ? "非表示にする" : "表示にする"}
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[s.delBtn, { alignSelf: "flex-end" }]}
+              style={s.delBtn}
               onPress={() => onDelete(item.id)}
             >
               <Text style={s.delTx}>削除</Text>
             </TouchableOpacity>
           </View>
         )}
-        leftOpenValue={90} // ← 左に90px開く：表示/非表示
         rightOpenValue={-80} // → 右に80px開く：削除
-        disableLeftSwipe={false}
+        disableLeftSwipe={true}
         disableRightSwipe={false}
       />
     </View>
@@ -152,25 +129,17 @@ const s = StyleSheet.create({
     padding: 12,
     marginVertical: 6,
     flexDirection: "row",
-    justifyContent: "space-between",
+    justifyContent: "flex-start",
     alignItems: "center",
   },
   name: { fontWeight: "700" },
-  badge: { fontSize: 12, color: "#6b7280" },
   hiddenRow: {
     flex: 1,
     flexDirection: "row",
-    justifyContent: "space-between",
+    justifyContent: "flex-end",
     alignItems: "center",
     paddingHorizontal: 16,
   },
-  hideBtn: {
-    backgroundColor: "#e5e7eb",
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-  },
-  hideTx: { fontWeight: "700", color: "#111" },
   delBtn: {
     backgroundColor: "#ef4444",
     paddingVertical: 10,
