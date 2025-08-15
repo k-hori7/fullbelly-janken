@@ -7,10 +7,12 @@ import {
   TouchableOpacity,
   TextInput,
   Alert,
+  KeyboardAvoidingView,
+  Platform,
+  FlatList,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
-import { SwipeListView } from "react-native-swipe-list-view";
 import { useConfigStore } from "../src/store/configStore";
 
 export default function Inventory() {
@@ -37,77 +39,66 @@ export default function Inventory() {
   };
 
   return (
-    <SafeAreaView style={s.wrap}>
-      <View style={s.header}>
-        <TouchableOpacity onPress={() => router.back()} style={s.back}>
-          <Text style={s.backTx}>戻る</Text>
-        </TouchableOpacity>
-        <Text style={s.title}>在庫管理</Text>
-        <View style={{ width: 60 }} />
-      </View>
-
-      <View style={s.tools}>
-        <TextInput
-          value={q}
-          onChangeText={setQ}
-          placeholder="候補を検索"
-          style={s.input}
-          returnKeyType="search"
-        />
-        <View style={s.row}>
-          <TouchableOpacity style={s.toolBtn} onPress={() => addFood()}>
-            <Text style={s.toolTx}>追加</Text>
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+    >
+      <SafeAreaView style={s.wrap}>
+        <View style={s.header}>
+          <TouchableOpacity onPress={() => router.back()} style={s.back}>
+            <Text style={s.backTx}>戻る</Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            style={s.toolBtn}
-            onPress={() => {
-              saveAsLast();
-              Alert.alert("保存しました");
-            }}
-          >
-            <Text style={s.toolTx}>保存</Text>
-          </TouchableOpacity>
+          <Text style={s.title}>在庫管理</Text>
+          <View style={{ width: 60 }} />
         </View>
-        <Text style={s.hint}>左にスワイプ：削除</Text>
-      </View>
 
-      <SwipeListView
-        data={filtered}
-        keyExtractor={(i) => i.id}
-        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}
-        renderItem={({ item }) => (
-          <View style={s.rowItem}>
-            <TextInput
-              value={item.name}
-              onChangeText={(t) => updateFood(item.id, { name: t })}
-              style={s.nameInput}
-            />
-            <TextInput
-              value={String(item.points)}
-              onChangeText={(t) =>
-                updateFood(item.id, { points: Number(t) || 0 })
-              }
-              style={s.pointInput}
-              keyboardType="numeric"
-            />
-            <Text style={s.pointLabel}>点</Text>
-          </View>
-        )}
-        renderHiddenItem={({ item }) => (
-          <View style={s.hiddenRow}>
+        <View style={s.tools}>
+          <TextInput
+            value={q}
+            onChangeText={setQ}
+            placeholder="候補を検索"
+            style={s.input}
+            returnKeyType="search"
+          />
+          <View style={s.row}>
+            <TouchableOpacity style={s.toolBtn} onPress={() => addFood()}>
+              <Text style={s.toolTx}>追加</Text>
+            </TouchableOpacity>
             <TouchableOpacity
-              style={s.delBtn}
-              onPress={() => onDelete(item.id)}
+              style={s.toolBtn}
+              onPress={() => {
+                saveAsLast();
+                Alert.alert("保存しました");
+              }}
             >
-              <Text style={s.delTx}>削除</Text>
+              <Text style={s.toolTx}>保存</Text>
             </TouchableOpacity>
           </View>
-        )}
-        rightOpenValue={-80} // ← 左に80px開く：削除
-        disableLeftSwipe={false}
-        disableRightSwipe={true}
-      />
-    </SafeAreaView>
+        </View>
+
+        <FlatList
+          data={filtered}
+          keyExtractor={(i) => i.id}
+          contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}
+          keyboardShouldPersistTaps="handled"
+          renderItem={({ item }) => (
+            <View style={s.rowItem}>
+              <TextInput
+                value={item.name}
+                onChangeText={(t) => updateFood(item.id, { name: t })}
+                style={s.nameInput}
+              />
+              <TouchableOpacity
+                style={s.delBtn}
+                onPress={() => onDelete(item.id)}
+              >
+                <Text style={s.delTx}>削除</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        />
+      </SafeAreaView>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -140,7 +131,6 @@ const s = StyleSheet.create({
     borderRadius: 8,
   },
   toolTx: { color: "#111", fontWeight: "600" },
-  hint: { marginTop: 8, color: "#6b7280", fontSize: 12 },
   rowItem: {
     backgroundColor: "#f8fafc",
     borderWidth: 1,
@@ -149,24 +139,16 @@ const s = StyleSheet.create({
     padding: 12,
     marginVertical: 6,
     flexDirection: "row",
-    justifyContent: "flex-start",
+    justifyContent: "space-between",
     alignItems: "center",
   },
   nameInput: { flex: 1, fontWeight: "700" },
-  pointInput: { width: 40, marginLeft: 8, textAlign: "right" },
-  pointLabel: { marginLeft: 4 },
-  hiddenRow: {
-    flex: 1,
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    alignItems: "center",
-    paddingHorizontal: 16,
-  },
   delBtn: {
     backgroundColor: "#ef4444",
     paddingVertical: 10,
     paddingHorizontal: 12,
     borderRadius: 8,
+    marginLeft: 12,
   },
   delTx: { fontWeight: "700", color: "#fff" },
 });
