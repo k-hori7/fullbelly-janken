@@ -1,9 +1,15 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { View, Text, TouchableOpacity, StyleSheet, Alert } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet, Alert, Image, ImageSourcePropType } from "react-native";
 import { useRouter } from "expo-router";
 import { useGameStore } from "../src/store/gameStore";
 import { useConfigStore } from "../src/store/configStore";
 import { Pool } from "../src/types";
+
+const handImages: Record<Pool, ImageSourcePropType> = {
+  rock: require("../image/gu.png"),
+  scissors: require("../image/choki.png"),
+  paper: require("../image/pa.png"),
+};
 
 export default function Game() {
   const router = useRouter();
@@ -74,10 +80,8 @@ export default function Game() {
     const item = preview.byHand[hand];
     const f = item?.food;
     return (
-      <TouchableOpacity
-        activeOpacity={0.9}
-        style={s.card}
-      >
+      <TouchableOpacity activeOpacity={0.9} style={s.card}>
+        <Image source={handImages[hand]} style={s.cardImg} />
         <Text style={s.cardHand}>{label}</Text>
         {f ? (
           <>
@@ -232,6 +236,7 @@ const s = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#eee",
   },
+  cardImg: { width: 64, height: 64, marginBottom: 6 },
   cardHand: { fontWeight: "700", marginBottom: 6 },
   cardName: { fontSize: 16, fontWeight: "700" },
   cardPts: { marginTop: 4, color: "#555" },
