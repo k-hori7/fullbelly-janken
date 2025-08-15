@@ -123,6 +123,8 @@ export default function Game() {
         <Card hand="paper" label="パー" />
       </View>
 
+      <Text style={s.notice}>ジャンケンは実際に行って勝者を選んでください</Text>
+
       {!selectWinner ? (
         <View style={s.row}>
           <TouchableOpacity
@@ -227,6 +229,7 @@ const s = StyleSheet.create({
   pName: { fontWeight: "600", fontSize: 16 },
   pPoints: { fontSize: 24, fontWeight: "800", marginTop: 4 },
   previewRow: { flexDirection: "row", gap: 8 },
+  notice: { textAlign: "center", color: "#6b7280", marginTop: 8 },
   card: {
     flex: 1,
     backgroundColor: "#fafafa",
