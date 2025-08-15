@@ -20,7 +20,7 @@ export default function Game() {
     resetMatch,
     isReady,
   } = useGameStore();
-  const { config, toggleFood } = useConfigStore();
+  const { config } = useConfigStore();
 
   const [selectWinner, setSelectWinner] = useState<"p1" | "p2" | null>(null);
 
@@ -74,9 +74,6 @@ export default function Game() {
     return (
       <TouchableOpacity
         activeOpacity={0.9}
-        onLongPress={() => {
-          if (f) toggleFood(f.id, false);
-        }}
         style={s.card}
       >
         <Text style={s.cardHand}>{label}</Text>
@@ -84,7 +81,6 @@ export default function Game() {
           <>
             <Text style={s.cardName}>{f.name}</Text>
             <Text style={s.cardPts}>+{item!.points} pt</Text>
-            <Text style={s.cardHelp}>長押しで非表示（次ラウンドから反映）</Text>
           </>
         ) : (
           <Text style={s.none}>候補なし</Text>
@@ -222,7 +218,6 @@ const s = StyleSheet.create({
   cardHand: { fontWeight: "700", marginBottom: 6 },
   cardName: { fontSize: 16, fontWeight: "700" },
   cardPts: { marginTop: 4, color: "#555" },
-  cardHelp: { marginTop: 6, fontSize: 12, color: "#6b7280" },
   none: { color: "#999", marginTop: 16 },
   row: { flexDirection: "row", gap: 8, marginTop: 16 },
   bigBtn: {

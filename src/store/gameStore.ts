@@ -52,12 +52,6 @@ export const useGameStore = create<GameState>((set, get) => ({
     const cfg = useConfigStore.getState().config!;
     const seed = `${Date.now()}-${Math.random()}`;
     const pv = makePreview(seed, cfg);
-    // 対戦画面から長押し非表示 → configStore を更新
-    pv.onHide = (foodId: string) => {
-      const cs = useConfigStore.getState();
-      cs.toggleFood(foodId, false);
-      // 再生成（当該ラウンドは固定が理想だが「非表示」は次ラウンドから効く想定でもOK）
-    };
     set({ preview: pv });
   },
 
