@@ -90,6 +90,7 @@ export default function Inventory() {
               style={s.pointInput}
               keyboardType="numeric"
             />
+            <Text style={s.pointLabel}>点</Text>
           </View>
         )}
         renderHiddenItem={({ item }) => (
@@ -153,6 +154,7 @@ const s = StyleSheet.create({
   },
   nameInput: { flex: 1, fontWeight: "700" },
   pointInput: { width: 40, marginLeft: 8, textAlign: "right" },
+  pointLabel: { marginLeft: 4 },
   hiddenRow: {
     flex: 1,
     flexDirection: "row",

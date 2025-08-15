@@ -31,8 +31,10 @@ export default function Game() {
       ]);
       return;
     }
-    startMatch(config);
-  }, [config]);
+    if (!isReady) {
+      startMatch(config);
+    }
+  }, [config, isReady]);
 
   useEffect(() => {
     if (isReady) newPreview();
@@ -162,7 +164,17 @@ export default function Game() {
         <TouchableOpacity
           style={s.secondary}
           onPress={() => {
-            resetMatch();
+            Alert.alert("リセットしますか？", "試合を最初からやり直します", [
+              { text: "キャンセル", style: "cancel" },
+              {
+                text: "リセット",
+                style: "destructive",
+                onPress: () => {
+                  startMatch(config!);
+                  newPreview();
+                },
+              },
+            ]);
           }}
         >
           <Text style={s.secondaryTxt}>リセット</Text>
