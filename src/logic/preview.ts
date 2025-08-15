@@ -10,7 +10,6 @@ export type PreviewItem = {
 export type RoundPreview = {
   seed: string;
   byHand: Partial<Record<Pool, PreviewItem>>;
-  onHide?: (foodId: string) => void; // 長押しで非表示 → 次ラウンドから反映
 };
 
 function pickDistinct3(
